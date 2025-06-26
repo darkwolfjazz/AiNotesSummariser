@@ -133,7 +133,7 @@ public String verifyOtp(String email,String otp){
     user.setVerified(false); //after deletion the verification should be false
     userRepository.delete(user);
     noteRepository.deleteAllByUserId(user.getId()); //after user got deleted it should delete the notes of the user also
-    return ResponseEntity.ok(user);
+    return ResponseEntity.status(200).body("User deleted successfully"); //Returning a proper message instead of returning the whole user object
     }
 
     //Update user details

@@ -3,6 +3,7 @@ package com.NotesSummary.service;
 import com.NotesSummary.component.JWTUtil;
 import com.NotesSummary.dto.LoginResponseDTO;
 import com.NotesSummary.entity.User;
+import com.NotesSummary.repository.NoteRepository;
 import com.NotesSummary.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -34,6 +35,9 @@ private EmailService emailService;
 
 @Autowired
 private JWTUtil jwtUtil;
+
+@Autowired
+private NoteRepository noteRepository;
 
 public String register(User user){
     if(userRepository.findByEmail(user.getEmail()).isPresent()){
@@ -126,7 +130,9 @@ public String verifyOtp(String email,String otp){
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found with mail"+email);
     }
     User user=userDeleted.get();
+    user.setVerified(false); //after deletion the verification should be false
     userRepository.delete(user);
+    noteRepository.deleteAllByUserId(user.getId()); //after user got deleted it should delete the notes of the user also
     return ResponseEntity.ok(user);
     }
 

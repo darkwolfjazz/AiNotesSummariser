@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface NoteRepository extends MongoRepository<Notes,Long> {
 
+    void deleteAllByUserId(String userId); //Added to delete the notes if the user is deleted
+
 }

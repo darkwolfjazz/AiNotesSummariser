@@ -5,6 +5,9 @@ import com.NotesSummary.dto.LoginResponseDTO;
 import com.NotesSummary.entity.User;
 import com.NotesSummary.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -116,5 +119,68 @@ public String verifyOtp(String email,String otp){
     }
 
 
+    //Delete user
+    public ResponseEntity<?>deleteUser(String email){
+    Optional<User>userDeleted=userRepository.findByEmail(email);
+    if(userDeleted.isEmpty()){
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found with mail"+email);
+    }
+    User user=userDeleted.get();
+    userRepository.delete(user);
+    return ResponseEntity.ok(user);
+    }
+
+    //Update user details
+    public ResponseEntity<?>updateUser(String email,User updatedUser){
+     Optional<User>usertoBeUpdated=userRepository.findByEmail(email);
+     if(usertoBeUpdated.isEmpty()){
+         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found with email"+email);
+     }
+     User user=usertoBeUpdated.get();
+     if(updatedUser.getEmail()!=null){
+         user.setEmail(updatedUser.getEmail());
+     }
+     if(updatedUser.getPassword()!=null && !updatedUser.getPassword().isEmpty()){
+         user.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
+     }
+     userRepository.save(user);
+     return ResponseEntity.ok("User details updated successfully");
+    }
+
+    //Forgot password functionality
+    public ResponseEntity<?>forgotPassword(String email){
+    Optional<User>optUser=userRepository.findByEmail(email);
+    if(optUser.isEmpty()){
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found with email"+email);
+    }
+    User user=optUser.get();
+    String otp=String.valueOf(new Random().nextInt(899999)+100000);
+    user.setOtp(otp);
+    user.setOtpGeneratedtime(LocalDateTime.now());
+    userRepository.save(user);
+    String message="Your otp for forgot password :"+otp +"Valid only for 10 minutes";
+    emailService.sendMail(email,"Forgot password OTP",message);
+    return ResponseEntity.ok("Otp sent successfully if you forgot your password");
+    }
+
+    //Reset password functionality
+    public ResponseEntity<?>resetPassword(String email,String otp,String newPassword){
+    Optional<User>optUser=userRepository.findByEmail(email);
+    if(optUser.isEmpty()){
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found with email"+email);
+    }
+    User user=optUser.get();
+    if(user.getOtp()==null || !user.getOtp().equalsIgnoreCase(otp)){
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid OTP");
+    }
+    if(user.getOtpGeneratedtime().plusMinutes(10).isBefore(LocalDateTime.now())){
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("OTP expired");
+    }
+    user.setPassword(passwordEncoder.encode(newPassword));
+    user.setOtp(null);
+    user.setOtpGeneratedtime(null);
+    userRepository.save(user);
+    return ResponseEntity.ok("Password reset successful");
+    }
 
 }

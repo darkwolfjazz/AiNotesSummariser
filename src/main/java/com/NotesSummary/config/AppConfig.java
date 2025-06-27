@@ -44,7 +44,7 @@ public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
                             .anyRequest().authenticated()
             )
             .sessionManagement(sess->sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authenticationProvider(authenticationProvider(userDetailService))
+            .authenticationProvider(daoAuthenticationProvider())//temp change
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterAfter(debugRequestFilter, JwtAuthenticationFilter.class);
     return http.build();
@@ -69,6 +69,15 @@ public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
+// temp change
+    @Bean
+    public DaoAuthenticationProvider daoAuthenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(userDetailService);
+        provider.setPasswordEncoder(passwordEncoder());
+        return provider;
+    }
+
 
 
 

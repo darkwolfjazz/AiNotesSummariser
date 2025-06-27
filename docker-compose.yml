@@ -16,7 +16,7 @@ services:
     depends_on:
       - mongo
     environment:
-      SPRING_DATA_MONGODB_URI: mongodb://mongo:27017/notesdb
+      SPRING_DATA_MONGODB_URI: "${MONGO_URI}"
 
 volumes:
   mongo-data:

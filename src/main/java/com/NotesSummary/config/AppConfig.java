@@ -37,7 +37,9 @@ public class AppConfig {
 public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     http.csrf(csrf-> csrf.disable())
             .authorizeHttpRequests(auth->
-                    auth.requestMatchers("/api/user/**","/login").permitAll()
+                    auth.requestMatchers("/api/user/**","/login",
+                                    "/swagger-ui/**", "/v3/api-docs/**",
+                                    "/swagger-resources/**", "/webjars/**").permitAll()
                             .requestMatchers(HttpMethod.POST,"/api/summary/**").hasAuthority("ROLE_USER")
                             .anyRequest().authenticated()
             )
